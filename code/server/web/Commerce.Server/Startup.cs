@@ -1,4 +1,6 @@
-﻿using Commerce.Server.Extensions;
+﻿using Commerce.Core.DependencyInjection.Extensions;
+using Commerce.Core.Mvc.Extensions;
+using Commerce.Core.Pipelines.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +25,9 @@ namespace Commerce.Server
                 .AddMvc()
                 .AddApiAssemblies()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddServiceConfigurator();
+            services
+                .AddServiceConfigurator()
+                .AddPipelines();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

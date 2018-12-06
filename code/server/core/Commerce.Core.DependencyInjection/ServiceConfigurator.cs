@@ -1,8 +1,8 @@
-using Commerce.Core.Services;
+using Commerce.Core.DependencyInjection.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Commerce.Core
+namespace Commerce.Core.DependencyInjection
 {
     public class ServiceConfigurator : IServiceConfigurator
     {

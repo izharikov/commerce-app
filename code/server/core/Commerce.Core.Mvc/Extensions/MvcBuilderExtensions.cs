@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyModel;
 
-namespace Commerce.Server.Extensions
+namespace Commerce.Core.Mvc.Extensions
 {
     public static class MvcBuilderExtensions
     {
