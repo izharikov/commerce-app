@@ -9,7 +9,7 @@ dotnet new classlib --name [Project Name]
 ```
 ## Create web project
 ```
-dotnet new web --name [Project Name]
+dotnet new webapi --name [Project Name]
 ```
 ## Add project to solution
 ```
