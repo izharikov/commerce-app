@@ -2,7 +2,7 @@ using Commerce.Core.Pipelines.Attributes;
 
 namespace Commerce.Core.Pipelines.Examples
 {
-    [Pipeline(Implementation = typeof(PipelineExample))]
+    [Pipeline(typeof(PipelineExample))]
     public interface IPipelineExample : IPipeline<string, int, object>
     {
     }
@@ -24,6 +24,25 @@ namespace Commerce.Core.Pipelines.Examples
     public class PipelineBlockFirst : DefaultPipelineBlock<string, string, object>
     {
         public override string Run(string arg, object context)
+        {
+            return arg + arg;
+        }
+    }
+
+    [Pipeline(typeof(PipelineExampleAsBlock))]
+    [PipelineBlock(Order = 3, Pipeline = typeof(IPipelineExample))]
+    public interface IPipelineExampleAsBlock : IPipeline<int, int, object>
+    {
+    }
+
+    public class PipelineExampleAsBlock : DefaultPipeline<int, int, object>, IPipelineExampleAsBlock
+    {
+    }
+
+    [PipelineBlock(Order = 0, Pipeline = typeof(IPipelineExampleAsBlock))]
+    public class PipelineBlockDoubleFirst : DefaultPipelineBlock<int, int, object>
+    {
+        public override int Run(int arg, object context)
         {
             return arg + arg;
         }

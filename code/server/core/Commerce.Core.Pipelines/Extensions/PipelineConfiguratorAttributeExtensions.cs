@@ -11,35 +11,32 @@ namespace Commerce.Core.Pipelines.Extensions
 {
     public static class PipelineConfiguratorExtensions
     {
-        public static IServiceCollection AddPipelines(this IServiceCollection serviceCollection)
+        public static IServiceCollection AddPipelinesFromAttributes(this IServiceCollection serviceCollection)
         {
-            var pipelineBlocks = typeof(IPipelineBlock).GetAllImplementingClasses();
+            var pipelineBlocks = typeof(IPipelineBlock).GetAllTypesImplementingOrClasses();
             var pipelineToBlockMapping = GeneratePipelineToBlockMapping(pipelineBlocks);
             foreach (var pipelineDefinitionEntry in pipelineToBlockMapping)
             {
-                foreach (var pipelineBlock in pipelineDefinitionEntry.Value.Pipelines)
+                var pipelineReflectionDetails = pipelineDefinitionEntry.Value;
+                foreach (var pipelineBlock in pipelineReflectionDetails.PipelineBlocks)
                 {
-                    serviceCollection.AddSingleton(pipelineBlock);
+                    if (pipelineBlock.IsClass && !pipelineBlock.IsAbstract)
+                    {
+                        serviceCollection.AddSingleton(pipelineBlock);
+                    }
                 }
 
-                serviceCollection.AddSingleton(pipelineDefinitionEntry.Key,
-                    provider =>
-                    {
-                        var implementationObject =
-                            (DefaultPipelineImplementation) Activator.CreateInstance(pipelineDefinitionEntry.Value
-                                .ImplementationType);
-                        implementationObject.Initialize(provider, pipelineDefinitionEntry.Value.Pipelines);
-                        return implementationObject;
-                    });
-                serviceCollection.AddSingleton(typeof(IPipeline),
-                    provider =>
-                    {
-                        var implementationObject =
-                            (DefaultPipelineImplementation) Activator.CreateInstance(pipelineDefinitionEntry.Value
-                                .ImplementationType);
-                        implementationObject.Initialize(provider, pipelineDefinitionEntry.Value.Pipelines);
-                        return implementationObject;
-                    });
+                var pipelineImplType = pipelineReflectionDetails.ImplementationType;
+                object Factory(IServiceProvider provider)
+                {
+                    var implementationObject = Activator.CreateInstance(pipelineImplType);
+                    ((IPipelineInitializer) implementationObject).Initialize(provider,
+                        pipelineReflectionDetails.PipelineBlocks);
+                    return implementationObject;
+                }
+
+                serviceCollection.AddSingleton(pipelineDefinitionEntry.Key, Factory);
+                serviceCollection.AddSingleton(typeof(IPipeline), Factory);
             }
 
             return serviceCollection;
@@ -61,8 +58,8 @@ namespace Commerce.Core.Pipelines.Extensions
                     pipelineToBlockMapping[info.PipelineType] = new PipelineReflectionModel()
                     {
                         InterfaceType = info.PipelineType,
-                        ImplementationType = info.ImplementationType,
-                        PipelineTypes = new List<PipelineBlockReflectionModel>{info}
+                        ImplementationType = info.BlockAttribute.Pipeline.GetCustomAttribute<PipelineAttribute>().Implementation,
+                        PipelineTypes = new List<PipelineBlockReflectionModel> {info}
                     };
                 }
             }
@@ -93,7 +90,6 @@ namespace Commerce.Core.Pipelines.Extensions
             result = new PipelineBlockReflectionModel
             {
                 PipelineType = attribute.Pipeline,
-                ImplementationType = attribute.Pipeline.GetCustomAttribute<PipelineAttribute>().Implementation,
                 PipelineBlockType = pipelineBlock,
                 BlockAttribute = attribute
             };
@@ -107,7 +103,7 @@ namespace Commerce.Core.Pipelines.Extensions
         public Type ImplementationType { get; set; }
         public IList<PipelineBlockReflectionModel> PipelineTypes { get; set; }
 
-        public IList<Type> Pipelines => PipelineTypes.Select(m => m.PipelineBlockType).ToList();
+        public IList<Type> PipelineBlocks => PipelineTypes.Select(m => m.PipelineBlockType).ToList();
 
         internal void SortPipelines()
         {
@@ -118,7 +114,6 @@ namespace Commerce.Core.Pipelines.Extensions
     internal class PipelineBlockReflectionModel
     {
         public Type PipelineType { get; set; }
-        public Type ImplementationType { get; set; }
         public Type PipelineBlockType { get; set; }
         public PipelineBlockAttribute BlockAttribute { get; set; }
     }

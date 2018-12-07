@@ -6,9 +6,14 @@ namespace Commerce.Core.Pipelines.Attributes
     public class PipelineAttribute : Attribute
     {
         public Type Implementation { get; set; }
+
+        public PipelineAttribute(Type implementation)
+        {
+            Implementation = implementation;
+        }
     }
     
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
     public class PipelineBlockAttribute : Attribute
     {
         public string Name { get; set; }

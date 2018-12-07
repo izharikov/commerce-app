@@ -1,24 +1,26 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Commerce.Core.Pipelines.Extensions;
+using Commerce.Core.Pipelines.Implementation;
 
 namespace Commerce.Core.Pipelines.Models
 {
     public class PipelineJsonModel
     {
-        public string InterfaceType { get; set; }
-        public string ImplementationType { get; set; }
+        public string Name { get; set; }
         public string Receive { get; set; }
         public string Return { get; set; }
         
         public List<PipelineBlockJsonModel> Blocks { get; set; }
 
-        public PipelineJsonModel Initialize(IPipeline pipeline)
+        public PipelineJsonModel(IPipeline pipeline)
         {
-            ImplementationType = pipeline.GetType().FullName;
-            Receive = pipeline.Receive.FullName;
-            Return = pipeline.Return.FullName;
-            Blocks = pipeline.Blocks.Select(block => new PipelineBlockJsonModel().Initialize(block)).ToList();
-            return this;
+            Name = pipeline.GetDisplayName();
+            Receive = pipeline.GetPipelineGenericArguments()[0].FullName;
+            Return = pipeline.GetPipelineGenericArguments()[1].FullName;
+            Blocks = pipeline.Blocks.Select(block => new PipelineBlockJsonModel(block)).ToList();
         }
+       
     }
 }

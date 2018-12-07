@@ -17,7 +17,7 @@ namespace Commerce.Core.Pipelines.Service
 
         public List<PipelineJsonModel> GetRegisteredPipelinesJson()
         {
-            return _serviceProvider.GetServices<IPipeline>().Select(pipeline => new PipelineJsonModel().Initialize(pipeline)).ToList();
+            return _serviceProvider.GetServices<IPipeline>().Select(pipeline => new PipelineJsonModel(pipeline)).ToList();
         }
     }
 }

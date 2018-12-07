@@ -4,17 +4,22 @@ using System.Linq;
 
 namespace Commerce.Core.Pipelines.Implementation
 {
-    public class DefaultPipelineImplementation : IPipeline
+    public class DefaultPipelineImplementation<TInput, TOutput, TContext> : IPipeline<TInput, TOutput, TContext>, IPipelineInitializer
     {
         private bool _initialized;
         private IList<IPipelineBlock> _pipelineBlocks;
 
         public IEnumerable<IPipelineBlock> Blocks => _pipelineBlocks;
 
-        internal void Initialize(IServiceProvider serviceProvider, IList<Type> pipelineBlocks)
+        public void Initialize(IServiceProvider serviceProvider, IList<Type> pipelineBlocks)
         {
             _pipelineBlocks = pipelineBlocks.Select(serviceProvider.GetService).Cast<IPipelineBlock>().ToList();
             _initialized = true;
+        }
+
+        public TOutput Run(TInput input, TContext context)
+        {
+            return (TOutput) Run((object) input, context);
         }
 
         public object Run(object input, object context)
@@ -31,8 +36,10 @@ namespace Commerce.Core.Pipelines.Implementation
 
             return result;
         }
+    }
 
-        public Type Receive { get; }
-        public Type Return { get; }
+    public interface IPipelineInitializer
+    {
+        void Initialize(IServiceProvider serviceProvider, IList<Type> pipelineBlocks);
     }
 }

@@ -15,20 +15,28 @@ namespace Commerce.Core.DependencyInjection.Extensions
             {
                 serviceCollection.AddSingleton(typeof(IServiceConfigurator), serviceImpl);
             }
+
             var tempServiceProvider = serviceCollection.BuildServiceProvider();
             var serviceConfigurators = tempServiceProvider.GetServices<IServiceConfigurator>();
             foreach (var serviceConfigurator in serviceConfigurators)
             {
                 serviceConfigurator.Configure(serviceCollection);
             }
+
             return serviceCollection;
+        }
+
+        public static IEnumerable<Type> GetAllTypesImplementingOrClasses(this Type requiredType)
+        {
+            return requiredType.GetAllImplementingWithFilter(type =>
+                (type.IsClass && !type.IsAbstract) || type.IsInterface);
         }
 
         public static IEnumerable<Type> GetAllImplementingClasses(this Type requiredType)
         {
             return requiredType.GetAllImplementingWithFilter(type => !type.IsAbstract);
         }
-        
+
         public static IEnumerable<Type> GetAllImplementingInterfaces(this Type requiredType)
         {
             return requiredType.GetAllImplementingWithFilter(type => type.IsInterface);
@@ -36,7 +44,8 @@ namespace Commerce.Core.DependencyInjection.Extensions
 
         private static IEnumerable<Type> GetAllImplementingWithFilter(this Type requiredType, Func<Type, bool> filter)
         {
-            var notServiceAssemblies = DependencyContext.Default.RuntimeLibraries.Where(lib => !lib.Serviceable).ToList();
+            var notServiceAssemblies =
+                DependencyContext.Default.RuntimeLibraries.Where(lib => !lib.Serviceable).ToList();
             foreach (var apiAssembly in notServiceAssemblies)
             {
                 var assembly = AppDomain.CurrentDomain.Load(apiAssembly.Name);
