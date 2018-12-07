@@ -2,10 +2,14 @@ using System;
 
 namespace Commerce.Core.Pipelines.Attributes
 {
+    /// <summary>
+    /// define pipeline. <br></br>
+    /// Pipeline represents 
+    /// </summary>
     [AttributeUsage(AttributeTargets.Interface)]
     public class PipelineAttribute : Attribute
     {
-        public Type Implementation { get; set; }
+        public Type Implementation { get; private set; }
 
         public PipelineAttribute(Type implementation)
         {
@@ -16,7 +20,6 @@ namespace Commerce.Core.Pipelines.Attributes
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
     public class PipelineBlockAttribute : Attribute
     {
-        public string Name { get; set; }
         public Type Pipeline { get; set; }
         public int Order { get; set; }
     }

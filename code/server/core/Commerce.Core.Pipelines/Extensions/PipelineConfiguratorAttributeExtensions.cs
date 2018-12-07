@@ -11,44 +11,77 @@ namespace Commerce.Core.Pipelines.Extensions
 {
     public static class PipelineConfiguratorExtensions
     {
+        /// <summary>
+        /// add all classes with <see cref="PipelineAttribute"/> as pipelines with associated blocks, marked with <see cref="PipelineBlockAttribute"/>
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        /// <returns></returns>
         public static IServiceCollection AddPipelinesFromAttributes(this IServiceCollection serviceCollection)
         {
-            var pipelineBlocks = typeof(IPipelineBlock).GetAllTypesImplementingOrClasses();
-            var pipelineToBlockMapping = GeneratePipelineToBlockMapping(pipelineBlocks);
-            foreach (var pipelineDefinitionEntry in pipelineToBlockMapping)
+            var pipelineBlocks = typeof(IPipelineBlock).GetAllImplementingInterfacesOrClasses();
+            var allPipelineDefinitions = GeneratePipelineDefinitions(pipelineBlocks);
+            foreach (var pipelineDefinition in allPipelineDefinitions)
             {
-                var pipelineReflectionDetails = pipelineDefinitionEntry.Value;
-                foreach (var pipelineBlock in pipelineReflectionDetails.PipelineBlocks)
-                {
-                    if (pipelineBlock.IsClass && !pipelineBlock.IsAbstract)
-                    {
-                        serviceCollection.AddSingleton(pipelineBlock);
-                    }
-                }
-
-                var pipelineImplType = pipelineReflectionDetails.ImplementationType;
-                object Factory(IServiceProvider provider)
-                {
-                    var implementationObject = Activator.CreateInstance(pipelineImplType);
-                    ((IPipelineInitializer) implementationObject).Initialize(provider,
-                        pipelineReflectionDetails.PipelineBlocks);
-                    return implementationObject;
-                }
-
-                serviceCollection.AddSingleton(pipelineDefinitionEntry.Key, Factory);
-                serviceCollection.AddSingleton(typeof(IPipeline), Factory);
+                serviceCollection.ConfigurePipeline(pipelineDefinition);
             }
 
             return serviceCollection;
         }
 
-        private static IDictionary<Type, PipelineReflectionModel> GeneratePipelineToBlockMapping(
-            IEnumerable<Type> allBlocks)
+        /// <summary>
+        /// Configure single pipeline definition
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        /// <param name="pipelineReflectionDetails"></param>
+        private static void ConfigurePipeline(this IServiceCollection serviceCollection,
+            PipelineReflectionModel pipelineReflectionDetails)
+        {
+            // first, register all pipeline blocks, that are classes
+            foreach (var pipelineBlock in pipelineReflectionDetails.PipelineBlocks)
+            {
+                if (pipelineBlock.IsClass && !pipelineBlock.IsAbstract)
+                {
+                    serviceCollection.AddSingleton(pipelineBlock);
+                }
+            }
+
+            object pipelineImplementationObject = null;
+
+            // inline function to generate pipeline class based on provided pipeline definition
+            object PipelineFactory(IServiceProvider provider)
+            {
+                if (pipelineImplementationObject != null)
+                {
+                    return pipelineImplementationObject;
+                }
+
+                // create pipeline object with reflection
+                pipelineImplementationObject = Activator.CreateInstance(pipelineReflectionDetails.ImplementationType);
+                // initialize pipeline with blocks
+                ((IPipelineInitializer) pipelineImplementationObject).Initialize(provider,
+                    pipelineReflectionDetails.PipelineBlocks);
+                return pipelineImplementationObject;
+            }
+
+            // add in DI to associate with pipeline interface using factory
+            serviceCollection.AddSingleton(pipelineReflectionDetails.InterfaceType, PipelineFactory);
+            // add the same factory to IPipeline interface for service purpose
+            serviceCollection.AddSingleton(typeof(IPipeline), PipelineFactory);
+        }
+
+        /// <summary>
+        /// scan all classpath to find any classes with <see cref="IPipeline{TInput,TOutput,TContext}"/>
+        /// and <see cref="IPipelineBlock{TInput,TOutput,TContext}"/> definition and map blocks to pipeline
+        /// </summary>
+        /// <param name="allBlockTypes"></param>
+        /// <returns></returns>
+        private static IEnumerable<PipelineReflectionModel> GeneratePipelineDefinitions(
+            IEnumerable<Type> allBlockTypes)
         {
             var pipelineToBlockMapping = new Dictionary<Type, PipelineReflectionModel>();
-            foreach (var pipelineBlockType in allBlocks)
+            foreach (var pipelineBlockType in allBlockTypes)
             {
-                if (!pipelineBlockType.TryPipelineBlockInformation(out var info)) continue;
+                if (!pipelineBlockType.TryParsePipelineBlockInformation(out var info)) continue;
                 if (pipelineToBlockMapping.ContainsKey(info.PipelineType))
                 {
                     pipelineToBlockMapping[info.PipelineType].PipelineTypes.Add(info);
@@ -58,7 +91,8 @@ namespace Commerce.Core.Pipelines.Extensions
                     pipelineToBlockMapping[info.PipelineType] = new PipelineReflectionModel()
                     {
                         InterfaceType = info.PipelineType,
-                        ImplementationType = info.BlockAttribute.Pipeline.GetCustomAttribute<PipelineAttribute>().Implementation,
+                        ImplementationType = info.BlockAttribute.Pipeline.GetCustomAttribute<PipelineAttribute>()
+                            .Implementation,
                         PipelineTypes = new List<PipelineBlockReflectionModel> {info}
                     };
                 }
@@ -69,10 +103,16 @@ namespace Commerce.Core.Pipelines.Extensions
                 value.SortPipelines();
             }
 
-            return pipelineToBlockMapping;
+            return pipelineToBlockMapping.Values;
         }
 
-        private static bool TryPipelineBlockInformation(this Type pipelineBlock,
+        /// <summary>
+        /// parse block's information from linked attribute
+        /// </summary>
+        /// <param name="pipelineBlock"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        private static bool TryParsePipelineBlockInformation(this Type pipelineBlock,
             out PipelineBlockReflectionModel result)
         {
             result = null;
@@ -97,7 +137,7 @@ namespace Commerce.Core.Pipelines.Extensions
         }
     }
 
-    internal class PipelineReflectionModel
+    public class PipelineReflectionModel
     {
         public Type InterfaceType { get; set; }
         public Type ImplementationType { get; set; }
@@ -111,7 +151,7 @@ namespace Commerce.Core.Pipelines.Extensions
         }
     }
 
-    internal class PipelineBlockReflectionModel
+    public class PipelineBlockReflectionModel
     {
         public Type PipelineType { get; set; }
         public Type PipelineBlockType { get; set; }

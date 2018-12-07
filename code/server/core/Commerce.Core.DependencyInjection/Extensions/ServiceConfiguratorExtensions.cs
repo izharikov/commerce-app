@@ -26,7 +26,7 @@ namespace Commerce.Core.DependencyInjection.Extensions
             return serviceCollection;
         }
 
-        public static IEnumerable<Type> GetAllTypesImplementingOrClasses(this Type requiredType)
+        public static IEnumerable<Type> GetAllImplementingInterfacesOrClasses(this Type requiredType)
         {
             return requiredType.GetAllImplementingWithFilter(type =>
                 (type.IsClass && !type.IsAbstract) || type.IsInterface);

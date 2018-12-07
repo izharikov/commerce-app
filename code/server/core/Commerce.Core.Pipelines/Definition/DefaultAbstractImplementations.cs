@@ -5,29 +5,6 @@ using Commerce.Core.Pipelines.Implementation;
 
 namespace Commerce.Core.Pipelines
 {
-    #region Pipeline interfaces 
-
-    public interface IPipeline: IPipelineBlock
-    {
-        IEnumerable<IPipelineBlock> Blocks { get; }
-    }
-
-    public interface IPipeline<TInput, TOutput, TContext> : IPipelineBlock<TInput, TOutput, TContext>, IPipeline
-    {
-       
-    }
-
-    #endregion
-
-    public interface IPipelineBlock
-    {
-        object Run(object input, object context);
-    }
-
-    public interface IPipelineBlock<TInput, TOutput, TContext> : IPipelineBlock
-    {
-        TOutput Run(TInput input, TContext context);
-    }
     
     public abstract class DefaultPipeline<TInput, TOutput, TContext> : DefaultPipelineImplementation<TInput, TOutput, TContext>
     {
