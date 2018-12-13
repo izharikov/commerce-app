@@ -51,7 +51,7 @@ namespace Commerce.Core.DependencyInjection.Extensions
                 var assembly = AppDomain.CurrentDomain.Load(apiAssembly.Name);
                 foreach (var exportedType in assembly.GetExportedTypes())
                 {
-                    if (filter(exportedType) && requiredType.IsAssignableFrom(exportedType))
+                    if (filter(exportedType) && requiredType.IsAssignableFrom(exportedType) && requiredType != exportedType)
                     {
                         yield return exportedType;
                     }
