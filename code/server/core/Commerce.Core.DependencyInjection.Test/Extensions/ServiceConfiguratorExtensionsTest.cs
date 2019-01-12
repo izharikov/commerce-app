@@ -37,7 +37,7 @@ namespace Commerce.Core.DependencyInjection.Test.Extensions
         public void Test_ImplementedInterfaces()
         {
             var implementedClasses = typeof(IImplementedTestInterface).GetAllImplementingInterfaces().ToList();
-            Assert.Equal(1, implementedClasses.Count);
+            Assert.Single(implementedClasses);
             Assert.Contains(typeof(IExtendImplementedTestInterface), implementedClasses);
         }
         
