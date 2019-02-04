@@ -1,11 +1,10 @@
+using Commerce.Core.Mvc.Controllers;
 using Commerce.Core.Pipelines.Service;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Commerce.Server.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class PipelineServiceController : Controller
+    public class PipelineServiceController : AdminApiCommerceController
     {
         private readonly IPipelineService _pipelineService;
 

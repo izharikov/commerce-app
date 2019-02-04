@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
+using Commerce.Core.Mvc.Controllers;
 using Commerce.Core.Tools;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Commerce.Server.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ValuesController : ControllerBase
+    public class ValuesController : ApiCommerceController
     {
         // GET api/values
         [HttpGet]

@@ -1,8 +1,12 @@
-﻿using Commerce.Core.DependencyInjection.Extensions;
+﻿using System.Threading.Tasks;
+using Commerce.Core.Authentication;
+using Commerce.Core.Authentication.Storage;
+using Commerce.Core.DependencyInjection.Extensions;
 using Commerce.Core.Mvc.Extensions;
 using Commerce.Core.Pipelines.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +28,7 @@ namespace Commerce.Server
             services
                 .AddMvc()
                 .AddApiAssemblies()
+                .AddAssembly("Commerce.Core.Authentication")
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services
                 .AddServiceConfigurator()
@@ -44,7 +49,13 @@ namespace Commerce.Server
                 app.UseHsts();
             }
 
-//            app.UseHttpsRedirection();
+            app.UseIdentityServer();
+            using (var scope = app.ApplicationServices.CreateScope())
+            {
+                ApplicationDbInitializer.InitialDataSeed(Configuration,
+                    scope.ServiceProvider).Wait();
+            }
+
             app.UseMvc();
         }
     }

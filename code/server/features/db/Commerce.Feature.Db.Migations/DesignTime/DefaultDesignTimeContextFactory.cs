@@ -13,7 +13,7 @@ namespace Commerce.Feature.Db.Common.DesignTime
             var builder = new DbContextOptionsBuilder<TContext>();
             builder
                 .UseSqlServer(
-                    "Server=localhost,1401;Database=master;User Id=SA;Password=kind6iVy;Trusted_Connection=False;MultipleActiveResultSets=true",
+                    "Server=127.0.0.1,1401;Database=master;User Id=SA;Password=kind6iVy;Trusted_Connection=False;MultipleActiveResultSets=true",
                     optionsBuilder => optionsBuilder.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName));
             return (TContext) Activator.CreateInstance(typeof(TContext), builder.Options);
         }

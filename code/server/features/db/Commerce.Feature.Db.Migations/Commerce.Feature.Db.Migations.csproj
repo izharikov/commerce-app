@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\..\core\Commerce.Core.Authentication\Commerce.Core.Authentication.csproj" />
       <ProjectReference Include="..\Commerce.Feature.Db.Catalog\Commerce.Feature.Db.Catalog.csproj" />
     </ItemGroup>
 

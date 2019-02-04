@@ -22,5 +22,12 @@ namespace Commerce.Core.Mvc.Extensions
 
             return mvcBuilder;
         }
+
+        public static IMvcBuilder AddAssembly(this IMvcBuilder mvcBuilder, string assemblyName)
+        {
+            var assembly = AppDomain.CurrentDomain.Load(assemblyName);
+            mvcBuilder.AddApplicationPart(assembly).AddControllersAsServices();
+            return mvcBuilder;
+        }
     }
 }

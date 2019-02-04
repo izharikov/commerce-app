@@ -1,10 +1,9 @@
+using Commerce.Core.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Commerce.Server.CatalogApi.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class BaseCatalogController : Controller
+    public class BaseCatalogController : ApiCommerceController
     {
         // GET
         [HttpGet]

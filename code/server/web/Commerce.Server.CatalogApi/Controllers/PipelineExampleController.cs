@@ -1,11 +1,10 @@
+using Commerce.Core.Mvc.Controllers;
 using Commerce.Core.Pipelines.Examples;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Commerce.Server.CatalogApi.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class PipelineExampleController : Controller
+    public class PipelineExampleController : ApiCommerceController
     {
         private IPipelineExample _pipelineExample;
 

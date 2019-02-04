@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\core\Commerce.Core.DependencyInjection\Commerce.Core.DependencyInjection.csproj" />
+    <ProjectReference Include="..\..\core\Commerce.Core.Mvc\Commerce.Core.Mvc.csproj" />
     <ProjectReference Include="..\..\core\Commerce.Core.Pipelines\Commerce.Core.Pipelines.csproj" />
     <ProjectReference Include="..\..\core\Commerce.Core\Commerce.Core.csproj" />
   </ItemGroup>
