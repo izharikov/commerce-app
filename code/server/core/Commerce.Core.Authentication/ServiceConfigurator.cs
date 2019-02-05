@@ -40,7 +40,6 @@ namespace Commerce.Core.Authentication
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationUserDbContext>()
                 .AddDefaultTokenProviders();
-//            var key = IdentityServerBuilderExtensionsCrypto.CreateRsaSecurityKey();
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential()
                 .AddInMemoryPersistedGrants()
@@ -48,16 +47,18 @@ namespace Commerce.Core.Authentication
                 .AddInMemoryApiResources(GetApiResources())
                 .AddInMemoryClients(GetClients())
                 .AddAspNetIdentity<ApplicationUser>();
-            
+
+            services.Configure<IdentityOptions>(options => { options.ClaimsIdentity = new ClaimsIdentityOptions(); });
+
             var filename = Path.Combine(Directory.GetCurrentDirectory(), "tempkey.rsa");
             TemporaryRsaKey key = new TemporaryRsaKey();
             if (File.Exists(filename))
             {
                 var keyFile = File.ReadAllText(filename);
-                key = JsonConvert.DeserializeObject<TemporaryRsaKey>(keyFile, new JsonSerializerSettings { ContractResolver = new RsaKeyContractResolver() });
-
+                key = JsonConvert.DeserializeObject<TemporaryRsaKey>(keyFile,
+                    new JsonSerializerSettings {ContractResolver = new RsaKeyContractResolver()});
             }
-            
+
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -71,7 +72,7 @@ namespace Commerce.Core.Authentication
                     };
                 });
         }
-        
+
         private class TemporaryRsaKey
         {
             public string KeyId { get; set; }
@@ -90,12 +91,14 @@ namespace Commerce.Core.Authentication
             }
         }
 
+        private static readonly ICollection<string> UserClaims = new[]
+            {JwtClaimTypes.Subject, JwtClaimTypes.Name, ClaimTypes.Role, ClaimTypes.Name};
 
         public IEnumerable<ApiResource> GetApiResources()
         {
             return new List<ApiResource>
             {
-                new ApiResource("admin_api")
+                new ApiResource("admin_api", UserClaims)
             };
         }
 
@@ -103,8 +106,10 @@ namespace Commerce.Core.Authentication
         {
             return new List<IdentityResource>
             {
-                new IdentityResources.OpenId(),
-                new IdentityResources.Profile(),
+                new IdentityResources.OpenId()
+                {
+                    UserClaims = UserClaims,
+                }
             };
         }
 
@@ -117,7 +122,12 @@ namespace Commerce.Core.Authentication
                     ClientId = "admin_site",
                     ClientSecrets = {new Secret(Configuration["Tokens:Key"].Sha256())},
                     AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
-                    AllowedScopes = {"admin_api", IdentityServerConstants.StandardScopes.OpenId}
+                    AllowedScopes =
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        "admin_api"
+                    },
+                    AlwaysIncludeUserClaimsInIdToken = true,
                 }
             };
         }

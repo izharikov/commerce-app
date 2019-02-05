@@ -14,7 +14,6 @@ namespace Commerce.Server.Controllers
         }
 
         [HttpGet]
-        [Route("GetAllServices")]
         public IActionResult GetAllServices()
         {
             return Json(_pipelineService.GetRegisteredPipelinesJson());

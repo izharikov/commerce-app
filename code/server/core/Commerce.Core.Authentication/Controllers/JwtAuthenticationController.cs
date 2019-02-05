@@ -11,5 +11,6 @@ namespace Commerce.Core.Authentication.Controllers
         }
 
         public IConfiguration Configuration { get; }
+        
     }
 }
