@@ -3,7 +3,7 @@ using Commerce.Core.Models;
 
 namespace Commerce.Feature.Catalog.Models
 {
-    public class Product
+    public class Product : BaseCommerceModel
     {
         public string Id { get; set; }
         public string Name { get; set; }

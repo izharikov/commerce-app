@@ -21,7 +21,6 @@ namespace Commerce.Core.Authentication.Controllers
 
         [HttpGet]
         [Route("info")]
-        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
         public async Task<IActionResult> Information()
         {
             var currentUser = await UserManager.GetUserAsync(User);
